@@ -9,6 +9,7 @@ import './index.css';
 import moment from 'moment';
 import {SketchField, Tools} from 'react-sketch';
 
+const writeJsonFile = require('write-json-file');
 const dateFormat = 'YYYY/MM/DD';
 const {SubMenu} = Menu;
 const fs = require('browserify-fs');
@@ -19,11 +20,26 @@ class App extends React.Component {
         // let jsonData = require('./date.json');
         // console.log(jsonData);
         this.state = {
-            date: null
+            date: null,
+            name: ""
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleClickStock = this.handleClickStock.bind(this);
-
+        this.handleChangeInput = this.handleChangeInput.bind(this);
+        this.handleButtonSave = this.handleButtonSave.bind(this);
+        fetch('http://localhost:3001/api/get', {
+            headers: {
+                'Accept': 'application/json, text/plain, */*'
+            }
+        }).then(
+            res => res.json()
+        ).then(json=>{
+            console.log(json);
+            this.setState({
+                date: this.state.date,
+                name: `${json.string}`
+            })
+        });
     }
 
 
@@ -31,17 +47,29 @@ class App extends React.Component {
         //alert(date);
         message.info(`You pick: ${date ? date.format('YYYY-MM-DD') : 'unselected'}`);
         this.setState({date: date});
-        let dateJ = {
-            date: date
-        };
-        let data = JSON.stringify(dateJ);
-
-        fs.writeFile('/date.json', data, function () {
-            console.log(data);
-        });
-
         console.log(this.state);
     };
+
+    handleButtonSave() {
+        console.log(this.state);
+        // let dataJson = {
+        //     string: this.state.name
+        // };
+        // let data = JSON.stringify(dataJson);
+        let str = this.state.name;
+        fetch(`http://localhost:3001/api/get/${str}`, {
+            headers: {
+                'Accept': 'application/json, text/plain, */*'
+            },
+            mode: 'no-cors'
+        });
+    };
+
+    handleChangeInput = (e) => {
+        this.setState({
+            name: e.target.value
+        })
+    }
 
     onChange(e) {
         message.info(`checkbox is ${e.target.checked ? 'checked' : 'unchecked'}`);
@@ -84,7 +112,10 @@ class App extends React.Component {
                 </div>
 
                 <div style={{width: 400, margin: '5px auto'}}>
-                    <Input placeholder="Please input something here"/>
+                    <Input id="inputbox" placeholder= {this.state.name} name='name'
+                           value={this.state.name}
+                           onChange={e => this.handleChangeInput(e)}/>
+                    <Button type="primary" onClick={this.handleButtonSave}>save</Button>
                 </div>
                 <div style={{width: 400, margin: '30px auto'}}>
                     <Tooltip title="This is a tooltip popup">
@@ -116,8 +147,8 @@ class App extends React.Component {
                 </div>
 
                 <div style={{width: 400, margin: '5px auto'}}>
-                    <DatePicker defaultValue={moment('2015/01/01', dateFormat)} format={dateFormat}
-                                onChange={this.handleChange}/>
+                    <label>Only support previous days (exclude today)</label>
+                    <DatePicker onChange={this.handleChange}/>
                 </div>
 
                 <div style={{width: 400, margin: '5px auto'}}>
