@@ -2,7 +2,11 @@
 ## how to run
 please make sure Node.js and Yarn are installed.
 
-cd in the src folder, first run:
+To install all the dependencies:
+
+> npm i
+
+first run:
 
 > yarn mock
 
